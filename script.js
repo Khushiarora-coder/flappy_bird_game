@@ -68,18 +68,23 @@ class FlappyBird {
             }
         });
 
-        // Mobile touch controls - updated to handle both touch and click events
+        // Mobile touch controls
         const handleTap = (e) => {
-            if (e.type === 'touchstart') {
-                e.preventDefault(); // Prevent scrolling
-            }
+            e.preventDefault(); // Always prevent default to avoid scrolling
+            e.stopPropagation(); // Stop event from bubbling up
+            
+            // Only handle the first touch
+            if (e.touches && e.touches.length > 1) return;
+            
             if (this.isGameRunning) {
                 this.flap();
+            } else if (!this.isGameOver) {
+                this.startGame();
             }
         };
 
-        // Add both touch and click event listeners
-        this.game.addEventListener('touchstart', handleTap);
+        // Add touch event listeners to the entire game container
+        this.game.addEventListener('touchstart', handleTap, { passive: false });
         this.game.addEventListener('click', handleTap);
 
         // Add floating animation to bird on start screen
@@ -96,7 +101,12 @@ class FlappyBird {
         this.pipeInterval = 2000;
         this.scoreElement.textContent = this.score;
         this.levelElement.textContent = this.level;
-        this.pipes.forEach(pipe => pipe.remove());
+        this.pipes.forEach(pipe => {
+            if (pipe.top && pipe.bottom) {
+                pipe.top.remove();
+                pipe.bottom.remove();
+            }
+        });
         this.pipes = [];
         this.isGameRunning = true;
         this.isGameOver = false;
@@ -116,6 +126,9 @@ class FlappyBird {
         this.bird.classList.remove('floating');
 
         // Start game loop and pipe generation
+        if (this.gameLoop) clearInterval(this.gameLoop);
+        if (this.pipeIntervalId) clearInterval(this.pipeIntervalId);
+        
         this.gameLoop = setInterval(() => this.update(), 20);
         this.pipeIntervalId = setInterval(() => this.createPipe(), this.pipeInterval);
     }

@@ -1,54 +1,76 @@
 class FlappyBird {
     constructor() {
-        this.game = document.getElementById('game');
-        this.bird = document.getElementById('bird');
-        this.startScreen = document.getElementById('start-screen');
-        this.gameOverScreen = document.getElementById('game-over');
-        this.startButton = document.getElementById('start-button');
-        this.restartButton = document.getElementById('restart-button');
-        this.scoreElement = document.getElementById('score');
-        this.highScoreElement = document.getElementById('highScore');
-        this.finalScoreElement = document.getElementById('final-score');
+        try {
+            this.game = document.getElementById('game');
+            this.bird = document.getElementById('bird');
+            this.startScreen = document.getElementById('start-screen');
+            this.gameOverScreen = document.getElementById('game-over');
+            this.startButton = document.getElementById('start-button');
+            this.restartButton = document.getElementById('restart-button');
+            this.scoreElement = document.getElementById('score');
+            this.levelElement = document.getElementById('level');
+            this.highScoreElement = document.getElementById('highScore');
+            this.finalScoreElement = document.getElementById('final-score');
 
-        // Initialize sounds with softer effects
-        this.sounds = {
-            flap: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
-            score: new Audio('https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3'),
-            hit: new Audio('https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3'),
-            background: new Audio('https://assets.mixkit.co/active_storage/sfx/2574/2574-preview.mp3')
-        };
-
-        // Set volumes for all sounds and handle errors
-        Object.values(this.sounds).forEach(sound => {
-            sound.volume = 0.2;
-            sound.onerror = () => {
-                console.log('Sound failed to load');
-                sound.play = () => {}; // Disable play if sound fails to load
+            // Initialize sounds with error handling
+            this.sounds = {
+                flap: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
+                score: new Audio('https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3'),
+                hit: new Audio('https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3'),
+                background: new Audio('https://assets.mixkit.co/active_storage/sfx/2574/2574-preview.mp3')
             };
-        });
 
-        // Set background music to loop
-        this.sounds.background.loop = true;
+            // Set volumes for all sounds and handle errors
+            Object.values(this.sounds).forEach(sound => {
+                sound.volume = 0.2;
+                sound.onerror = () => {
+                    console.log('Sound failed to load');
+                    sound.play = () => {}; // Disable play if sound fails to load
+                };
+            });
 
-        this.birdPosition = 400;
-        this.gravity = 0.6;
-        this.velocity = 0;
-        this.pipes = [];
-        this.score = 0;
-        this.highScore = localStorage.getItem('flappyBirdHighScore') || 0;
-        this.gameLoop = null;
-        this.pipeInterval = null;
-        this.isGameRunning = false;
+            // Set background music to loop
+            this.sounds.background.loop = true;
 
-        this.init();
+            this.birdPosition = 400;
+            this.gravity = 0.6;
+            this.velocity = 0;
+            this.pipes = [];
+            this.score = 0;
+            this.level = 1;
+            this.pipeSpeed = 4;
+            this.pipeInterval = 2000;
+            this.highScore = localStorage.getItem('flappyBirdHighScore') || 0;
+            this.gameLoop = null;
+            this.pipeIntervalId = null;
+            this.isGameRunning = false;
+
+            this.init();
+        } catch (error) {
+            console.error('Error initializing game:', error);
+            alert('Error loading game. Please refresh the page.');
+        }
     }
 
     init() {
         this.highScoreElement.textContent = this.highScore;
+        this.levelElement.textContent = this.level;
+        
+        // Add event listeners for both desktop and mobile
         this.startButton.addEventListener('click', () => this.startGame());
         this.restartButton.addEventListener('click', () => this.startGame());
+        
+        // Desktop controls
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' && this.isGameRunning) {
+                this.flap();
+            }
+        });
+
+        // Mobile touch controls
+        this.game.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            if (this.isGameRunning) {
                 this.flap();
             }
         });
@@ -62,7 +84,11 @@ class FlappyBird {
         this.birdPosition = 400;
         this.velocity = 0;
         this.score = 0;
+        this.level = 1;
+        this.pipeSpeed = 4;
+        this.pipeInterval = 2000;
         this.scoreElement.textContent = this.score;
+        this.levelElement.textContent = this.level;
         this.pipes.forEach(pipe => pipe.remove());
         this.pipes = [];
         this.isGameRunning = true;
@@ -79,7 +105,7 @@ class FlappyBird {
 
         // Start game loop and pipe generation
         this.gameLoop = setInterval(() => this.update(), 20);
-        this.pipeInterval = setInterval(() => this.createPipe(), 2500);
+        this.pipeIntervalId = setInterval(() => this.createPipe(), this.pipeInterval);
     }
 
     flap() {
@@ -88,6 +114,21 @@ class FlappyBird {
         this.sounds.flap.currentTime = 0;
         this.sounds.flap.play();
         setTimeout(() => this.bird.classList.remove('flapping'), 200);
+    }
+
+    updateLevel() {
+        if (this.score > 0 && this.score % 5 === 0) {
+            this.level++;
+            this.pipeSpeed += 0.8;
+            this.pipeInterval = Math.max(1200, this.pipeInterval - 250);
+            
+            // Update pipe interval
+            clearInterval(this.pipeIntervalId);
+            this.pipeIntervalId = setInterval(() => this.createPipe(), this.pipeInterval);
+            
+            // Update level display
+            this.levelElement.textContent = this.level;
+        }
     }
 
     update() {
@@ -104,7 +145,7 @@ class FlappyBird {
         // Update pipes
         this.pipes.forEach((pipe, index) => {
             const pipeLeft = parseInt(pipe.style.left);
-            pipe.style.left = `${pipeLeft - 3}px`;
+            pipe.style.left = `${pipeLeft - this.pipeSpeed}px`;
 
             // Check for score
             if (pipeLeft === 98) {
@@ -112,6 +153,7 @@ class FlappyBird {
                 this.scoreElement.textContent = this.score;
                 this.sounds.score.currentTime = 0;
                 this.sounds.score.play();
+                this.updateLevel();
             }
 
             // Check for collisions
@@ -161,7 +203,7 @@ class FlappyBird {
     gameOver() {
         this.isGameRunning = false;
         clearInterval(this.gameLoop);
-        clearInterval(this.pipeInterval);
+        clearInterval(this.pipeIntervalId);
 
         // Stop background music and play hit sound
         this.sounds.background.pause();

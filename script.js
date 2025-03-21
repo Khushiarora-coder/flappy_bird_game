@@ -18,11 +18,14 @@ class FlappyBird {
             background: new Audio('https://assets.mixkit.co/active_storage/sfx/2574/2574-preview.mp3')
         };
 
-        // Set volumes for all sounds
-        this.sounds.flap.volume = 0.3;
-        this.sounds.score.volume = 0.4;
-        this.sounds.hit.volume = 0.3;
-        this.sounds.background.volume = 0.2;
+        // Set volumes for all sounds and handle errors
+        Object.values(this.sounds).forEach(sound => {
+            sound.volume = 0.2;
+            sound.onerror = () => {
+                console.log('Sound failed to load');
+                sound.play = () => {}; // Disable play if sound fails to load
+            };
+        });
 
         // Set background music to loop
         this.sounds.background.loop = true;

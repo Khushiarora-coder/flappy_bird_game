@@ -1,9 +1,9 @@
 # Flappy Bird Game
 
-A modern implementation of the classic Flappy Bird game using HTML, CSS, and JavaScript.
+A modern implementation of the classic Flappy Bird game using HTML5, CSS3, and JavaScript.
 
 ## Live Demo
-[Play the game](https://YOUR_USERNAME.github.io/flappy-bird)
+[Play Game](https://khushiarora-coder.github.io/flappy_bird_game/)
 
 ## Required Assets
 
@@ -23,29 +23,23 @@ You can find free game assets from websites like:
 
 ## Features
 
-- Modern, responsive design
-- Score tracking
-- High score persistence
-- Smooth animations
-- Collision detection
-- Game over screen
-- Restart functionality
+- Smooth animations and physics
+- Score tracking with local storage
+- Responsive design
 - Sound effects and background music
-- Animated bird sprite
+- Dark theme with pink accents
 
 ## How to Play
 
-1. Open the game in your web browser
-2. Click the "Start Game" button or press the Space bar to begin
-3. Press the Space bar to make the bird flap and avoid the pipes
-4. Try to get through as many pipes as possible to increase your score
-5. If you hit a pipe or go out of bounds, the game ends
-6. Your high score will be saved locally
+1. Click "Start Game" or press Space to begin
+2. Press Space to make the bird flap
+3. Navigate through the pipes
+4. Try to achieve the highest score!
 
 ## Controls
 
-- Space bar: Make the bird flap
-- Mouse click: Start/Restart game
+- Space: Flap/Jump
+- Mouse Click: Start/Restart game
 
 ## Technical Details
 
@@ -54,20 +48,25 @@ The game is built using:
 - CSS3 for styling and animations
 - Vanilla JavaScript for game logic
 - Local Storage for high score persistence
+- Responsive design for all screen sizes
+
+## Installation
+1. Clone the repository:
+```bash
+git clone https://github.com/Khushiarora-coder/flappy_bird_game.git
+```
+2. Open `index.html` in your browser
+3. Start playing!
 
 ## Deployment Instructions
 1. Fork this repository
-2. Go to repository Settings
-3. Navigate to "Pages" section
-4. Select "main" branch as source
-5. Click "Save"
+2. Go to Settings → Pages
+3. Select "main" branch as source
+4. Save changes
+5. Your game will be available at: `https://YOUR_USERNAME.github.io/flappy_bird_game`
 
-Your game will be available at: `https://YOUR_USERNAME.github.io/flappy-bird`
-
-## Development
-To run the game locally:
-1. Clone the repository
-2. Open `index.html` in your web browser
-3. Start playing!
+## Credits
+- Sound effects from Mixkit
+- Inspired by the original Flappy Bird game
 
 No external dependencies required! 

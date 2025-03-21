@@ -144,20 +144,42 @@ body {
 }
 
 button {
-    padding: 15px 40px;
-    font-size: 1.5em;
-    background: #FF69B4;
+    background: #4CAF50;
     color: white;
     border: none;
-    border-radius: 30px;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 25px;
     cursor: pointer;
-    transition: transform 0.2s, background 0.2s;
-    box-shadow: 0 5px 15px rgba(255, 105, 180, 0.3);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
-button:hover {
-    transform: scale(1.05);
-    background: #FF1493;
+button:hover, button:active {
+    background: #45a049;
+    transform: translateY(2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+/* Mobile-specific button styles */
+@media (max-width: 768px) {
+    button {
+        padding: 20px 40px;
+        font-size: 20px;
+        min-width: 200px;
+        margin: 10px 0;
+    }
+
+    #restart-button {
+        position: relative;
+        z-index: 1000;
+    }
 }
 
 .hidden {

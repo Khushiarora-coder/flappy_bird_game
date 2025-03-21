@@ -58,22 +58,18 @@ class FlappyBird {
         this.levelElement.textContent = this.level;
         
         // Add event listeners for both desktop and mobile
-        const startGameHandler = () => {
+        const startGameHandler = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             this.startGame();
         };
 
         // Add both click and touch events for buttons
         this.startButton.addEventListener('click', startGameHandler);
-        this.startButton.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            startGameHandler();
-        });
+        this.startButton.addEventListener('touchstart', startGameHandler);
 
         this.restartButton.addEventListener('click', startGameHandler);
-        this.restartButton.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            startGameHandler();
-        });
+        this.restartButton.addEventListener('touchstart', startGameHandler);
         
         // Desktop controls
         document.addEventListener('keydown', (e) => {
@@ -262,8 +258,22 @@ class FlappyBird {
         this.gameOverScreen.classList.remove('hidden');
         
         // Clear intervals
-        clearInterval(this.gameLoop);
-        clearInterval(this.pipeIntervalId);
+        if (this.gameLoop) clearInterval(this.gameLoop);
+        if (this.pipeIntervalId) clearInterval(this.pipeIntervalId);
+        
+        // Reset game state
+        this.birdPosition = 400;
+        this.velocity = 0;
+        this.bird.style.top = `${this.birdPosition}px`;
+        
+        // Remove all pipes
+        this.pipes.forEach(pipe => {
+            if (pipe.top && pipe.bottom) {
+                pipe.top.remove();
+                pipe.bottom.remove();
+            }
+        });
+        this.pipes = [];
     }
 }
 

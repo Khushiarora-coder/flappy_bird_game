@@ -93,9 +93,10 @@ class FlappyBird {
         this.pipes = [];
         this.isGameRunning = true;
 
-        // Hide screens
+        // Hide screens and mobile controls
         this.startScreen.classList.add('hidden');
         this.gameOverScreen.classList.add('hidden');
+        document.querySelector('.mobile-controls').style.display = 'none';
 
         // Start background music
         this.sounds.background.play();

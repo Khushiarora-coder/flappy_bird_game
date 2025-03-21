@@ -67,13 +67,19 @@ class FlappyBird {
             }
         });
 
-        // Mobile touch controls
-        this.game.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Prevent scrolling
+        // Mobile touch controls - updated to handle both touch and click events
+        const handleTap = (e) => {
+            if (e.type === 'touchstart') {
+                e.preventDefault(); // Prevent scrolling
+            }
             if (this.isGameRunning) {
                 this.flap();
             }
-        });
+        };
+
+        // Add both touch and click event listeners
+        this.game.addEventListener('touchstart', handleTap);
+        this.game.addEventListener('click', handleTap);
 
         // Add floating animation to bird on start screen
         this.bird.classList.add('floating');
@@ -96,7 +102,10 @@ class FlappyBird {
         // Hide screens and mobile controls
         this.startScreen.classList.add('hidden');
         this.gameOverScreen.classList.add('hidden');
-        document.querySelector('.mobile-controls').style.display = 'none';
+        const mobileControls = document.querySelector('.mobile-controls');
+        if (mobileControls) {
+            mobileControls.style.display = 'none';
+        }
 
         // Start background music
         this.sounds.background.play();

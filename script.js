@@ -44,6 +44,7 @@ class FlappyBird {
             this.gameLoop = null;
             this.pipeIntervalId = null;
             this.isGameRunning = false;
+            this.isGameOver = false;
 
             this.init();
         } catch (error) {
@@ -98,6 +99,7 @@ class FlappyBird {
         this.pipes.forEach(pipe => pipe.remove());
         this.pipes = [];
         this.isGameRunning = true;
+        this.isGameOver = false;
 
         // Hide screens and mobile controls
         this.startScreen.classList.add('hidden');
@@ -119,118 +121,127 @@ class FlappyBird {
     }
 
     flap() {
+        if (!this.isGameRunning || this.isGameOver) return;
         this.velocity = -10;
-        this.bird.classList.add('flapping');
-        this.sounds.flap.currentTime = 0;
         this.sounds.flap.play();
-        setTimeout(() => this.bird.classList.remove('flapping'), 200);
     }
 
-    updateLevel() {
-        if (this.score > 0 && this.score % 5 === 0) {
-            this.level++;
-            this.pipeSpeed += 0.8;
-            this.pipeInterval = Math.max(1200, this.pipeInterval - 250);
-            
-            // Update pipe interval
-            clearInterval(this.pipeIntervalId);
-            this.pipeIntervalId = setInterval(() => this.createPipe(), this.pipeInterval);
-            
-            // Update level display
-            this.levelElement.textContent = this.level;
-        }
+    createPipe() {
+        if (!this.isGameRunning || this.isGameOver) return;
+        
+        const gap = 200;
+        const minHeight = 50;
+        const maxHeight = 400;
+        const height = Math.random() * (maxHeight - minHeight) + minHeight;
+        
+        const topPipe = document.createElement('div');
+        topPipe.className = 'pipe top';
+        topPipe.style.height = `${height}px`;
+        topPipe.style.left = '500px';
+        
+        const bottomPipe = document.createElement('div');
+        bottomPipe.className = 'pipe bottom';
+        bottomPipe.style.height = `${600 - height - gap}px`;
+        bottomPipe.style.left = '500px';
+        
+        this.game.appendChild(topPipe);
+        this.game.appendChild(bottomPipe);
+        this.pipes.push({ top: topPipe, bottom: bottomPipe, passed: false });
     }
 
     update() {
+        if (!this.isGameRunning || this.isGameOver) return;
+
         // Update bird position
         this.velocity += this.gravity;
         this.birdPosition += this.velocity;
         this.bird.style.top = `${this.birdPosition}px`;
 
-        // Check collisions
-        if (this.birdPosition < 0 || this.birdPosition > 720) {
+        // Check for collisions with ground and ceiling
+        if (this.birdPosition > 550 || this.birdPosition < 0) {
             this.gameOver();
+            return;
         }
 
         // Update pipes
         this.pipes.forEach((pipe, index) => {
-            const pipeLeft = parseInt(pipe.style.left);
-            pipe.style.left = `${pipeLeft - this.pipeSpeed}px`;
-
-            // Check for score
-            if (pipeLeft === 98) {
-                this.score++;
-                this.scoreElement.textContent = this.score;
-                this.sounds.score.currentTime = 0;
-                this.sounds.score.play();
-                this.updateLevel();
-            }
-
+            const topLeft = parseInt(pipe.top.style.left);
+            const bottomLeft = parseInt(pipe.bottom.style.left);
+            
+            // Move pipes
+            pipe.top.style.left = `${topLeft - this.pipeSpeed}px`;
+            pipe.bottom.style.left = `${bottomLeft - this.pipeSpeed}px`;
+            
             // Check for collisions
             if (this.checkCollision(pipe)) {
                 this.gameOver();
+                return;
             }
-
-            // Remove off-screen pipes
-            if (pipeLeft < -100) {
-                pipe.remove();
+            
+            // Score point when passing pipe
+            if (!pipe.passed && topLeft < 100) {
+                this.score++;
+                this.scoreElement.textContent = this.score;
+                pipe.passed = true;
+                this.sounds.score.play();
+                
+                // Level up every 5 points
+                if (this.score % 5 === 0) {
+                    this.level++;
+                    this.levelElement.textContent = this.level;
+                    this.pipeSpeed += 0.5;
+                    this.pipeInterval = Math.max(1000, this.pipeInterval - 100);
+                }
+            }
+            
+            // Remove pipes that are off screen
+            if (topLeft < -60) {
+                pipe.top.remove();
+                pipe.bottom.remove();
                 this.pipes.splice(index, 1);
             }
         });
     }
 
-    createPipe() {
-        const gap = 250;
-        const gapPosition = Math.random() * (700 - gap - 100) + 50;
-        
-        const topPipe = document.createElement('div');
-        topPipe.className = 'pipe top';
-        topPipe.style.height = `${gapPosition}px`;
-        topPipe.style.left = '800px';
-
-        const bottomPipe = document.createElement('div');
-        bottomPipe.className = 'pipe bottom';
-        bottomPipe.style.height = `${720 - gapPosition - gap}px`;
-        bottomPipe.style.left = '800px';
-
-        this.game.appendChild(topPipe);
-        this.game.appendChild(bottomPipe);
-        this.pipes.push(topPipe, bottomPipe);
-    }
-
     checkCollision(pipe) {
         const birdRect = this.bird.getBoundingClientRect();
-        const pipeRect = pipe.getBoundingClientRect();
+        const topPipeRect = pipe.top.getBoundingClientRect();
+        const bottomPipeRect = pipe.bottom.getBoundingClientRect();
 
         return (
-            birdRect.right > pipeRect.left &&
-            birdRect.left < pipeRect.right &&
-            birdRect.top < pipeRect.bottom &&
-            birdRect.bottom > pipeRect.top
+            birdRect.right > topPipeRect.left &&
+            birdRect.left < topPipeRect.right &&
+            (birdRect.top < topPipeRect.bottom || birdRect.bottom > bottomPipeRect.top)
         );
     }
 
     gameOver() {
+        if (this.isGameOver) return;
+        
+        this.isGameOver = true;
         this.isGameRunning = false;
-        clearInterval(this.gameLoop);
-        clearInterval(this.pipeIntervalId);
-
+        
         // Stop background music and play hit sound
         this.sounds.background.pause();
-        this.sounds.background.currentTime = 0;
         this.sounds.hit.play();
-
+        
+        // Update high score
         if (this.score > this.highScore) {
             this.highScore = this.score;
             localStorage.setItem('flappyBirdHighScore', this.highScore);
         }
-
+        
+        // Show game over screen
         this.finalScoreElement.textContent = this.score;
         this.gameOverScreen.classList.remove('hidden');
+        
+        // Clear intervals
+        clearInterval(this.gameLoop);
+        clearInterval(this.pipeIntervalId);
     }
 }
 
-// Start the game when the page loads
-window.addEventListener('load', () => {
+// Initialize game when window loads
+window.onload = () => {
     new FlappyBird();
-}); 
+}; 

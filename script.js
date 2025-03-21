@@ -58,8 +58,22 @@ class FlappyBird {
         this.levelElement.textContent = this.level;
         
         // Add event listeners for both desktop and mobile
-        this.startButton.addEventListener('click', () => this.startGame());
-        this.restartButton.addEventListener('click', () => this.startGame());
+        const startGameHandler = () => {
+            this.startGame();
+        };
+
+        // Add both click and touch events for buttons
+        this.startButton.addEventListener('click', startGameHandler);
+        this.startButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startGameHandler();
+        });
+
+        this.restartButton.addEventListener('click', startGameHandler);
+        this.restartButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startGameHandler();
+        });
         
         // Desktop controls
         document.addEventListener('keydown', (e) => {
@@ -68,7 +82,7 @@ class FlappyBird {
             }
         });
 
-        // Mobile touch controls
+        // Mobile touch controls for game area
         const handleTap = (e) => {
             e.preventDefault(); // Always prevent default to avoid scrolling
             e.stopPropagation(); // Stop event from bubbling up
@@ -78,12 +92,10 @@ class FlappyBird {
             
             if (this.isGameRunning) {
                 this.flap();
-            } else if (!this.isGameOver) {
-                this.startGame();
             }
         };
 
-        // Add touch event listeners to the entire game container
+        // Add touch event listeners to the game area
         this.game.addEventListener('touchstart', handleTap, { passive: false });
         this.game.addEventListener('click', handleTap);
 
@@ -125,10 +137,11 @@ class FlappyBird {
         // Remove floating animation
         this.bird.classList.remove('floating');
 
-        // Start game loop and pipe generation
+        // Clear any existing intervals
         if (this.gameLoop) clearInterval(this.gameLoop);
         if (this.pipeIntervalId) clearInterval(this.pipeIntervalId);
         
+        // Start game loop and pipe generation
         this.gameLoop = setInterval(() => this.update(), 20);
         this.pipeIntervalId = setInterval(() => this.createPipe(), this.pipeInterval);
     }
